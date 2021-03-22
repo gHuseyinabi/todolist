@@ -20,7 +20,7 @@ Config = {
 def _print(*args, **kwargs):
     '''Print without newline, because adding parameter end='' looks ugly'''
     kwargs['end'] = ''
-    stdout.write("\033[K")
+    print("\033[K", end='')
     print(*args, **kwargs)
 
 
@@ -47,7 +47,7 @@ def _ArgumentParser():
 
 def Init():
     init()
-    stdout.write(Fore.RED)
+    _print(Fore.RED)
     _ArgumentParser()
     CheckIfFileExists()
 
@@ -55,9 +55,9 @@ def Init():
 def DisplayLists(Cursor, Lists):
     caveman.move(0, 0)
     for Index, List in enumerate(Lists):
-        stdout.write(Fore.RED)
+        _print(Fore.RED)
         if Index == Cursor[1]:
-            stdout.write(Fore.BLUE)
+            _print(Fore.BLUE)
         caveman.addstr(f'[{"x" if List["checked"] else " "}] {List["name"]}\n')
 
 
@@ -96,7 +96,7 @@ def Prompt(PlaceHolder, Cursor):
     NewName = input('Task Name:')
 
     caveman.move(10, 5)
-    stdout.write("\033[K")
+    _print("\033[K")
     caveman.move(*Cursor)
     return NewName
 
@@ -106,10 +106,10 @@ def Main():
     Cursor = [0, 0]
     Key = ''
     while Key != Config['exit']:
-        ToPrint = f'{Cursor[1]}'
+        ToPrint = ''
         if Key == Config['save']:
             Save(Lists)
-            ToPrint += f'| Saved in {Config["listFile"]}'
+            ToPrint += f'Saved in {Config["listFile"]} | '
         elif Config['enter'] == Key:
             Lists[Cursor[1]]['checked'] = not Lists[Cursor[1]]['checked']
         elif Key == 'r':
@@ -125,10 +125,11 @@ def Main():
                 Cursor[1] -= 1
         else:
             Cursor = CheckMovement(Cursor, Key, Lists)
-        stdout.write("\033[?25l")
+        ToPrint += str(Cursor[1]+1)
+        _print("\033[?25l")
         DisplayLists(Cursor, Lists)
-        stdout.write("\033[?25h")
-        stdout.write(Fore.LIGHTYELLOW_EX)
+        _print("\033[?25h")
+        _print(Fore.LIGHTYELLOW_EX)
         print(ToPrint)
         caveman.move(*Cursor)
 
