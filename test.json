@@ -1,0 +1,18 @@
+[
+    {
+        "checked": true,
+        "name": "Task 1"
+    },
+    {
+        "checked": false,
+        "name": "Task 2"
+    },
+    {
+        "checked": false,
+        "name": "Task 3 (Renamed)"
+    },
+    {
+        "checked": true,
+        "name": "Task 4"
+    }
+]
