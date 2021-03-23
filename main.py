@@ -2,7 +2,6 @@ from readchar import readkey
 from json import load, dump
 import caveman
 from argparse import ArgumentParser
-from sys import stdout
 from colorama import Fore, Back, init
 Config = {
     'listFile': 'list.json',
@@ -13,14 +12,20 @@ Config = {
     'left': 'D',
     'exit': '\x05',
     'save': '\x13',
-    'enter': '\r'
+    'enter': '\r',
+    'del': '\x1b[3~'
 }
+
+ClearScreen = '\x1b[2J'
+CursorOff = '\033[?25l'
+CursorOn = '\033[?25h'
+ClearLine = '\33[2K\r'
 
 
 def _print(*args, **kwargs):
     '''Print without newline, because adding parameter end='' looks ugly'''
     kwargs['end'] = ''
-    print("\033[K", end='')
+    print(ClearLine, end='')
     print(*args, **kwargs)
 
 
@@ -47,7 +52,7 @@ def _ArgumentParser():
 
 def Init():
     init()
-    _print(Fore.RED)
+    _print(ClearScreen)
     _ArgumentParser()
     CheckIfFileExists()
 
@@ -55,9 +60,10 @@ def Init():
 def DisplayLists(Cursor, Lists):
     caveman.move(0, 0)
     for Index, List in enumerate(Lists):
-        _print(Fore.RED)
         if Index == Cursor[1]:
             _print(Fore.BLUE)
+        else:
+            _print(Fore.RED)
         caveman.addstr(f'[{"x" if List["checked"] else " "}] {List["name"]}\n')
 
 
@@ -93,10 +99,10 @@ def CheckMovement(Cursor, Key, Lists):
 
 def Prompt(PlaceHolder, Cursor):
     caveman.move(10, 5)
+    _print(Fore.MAGENTA)
     NewName = input('Task Name:')
-
     caveman.move(10, 5)
-    _print("\033[K")
+    _print()
     caveman.move(*Cursor)
     return NewName
 
@@ -119,18 +125,20 @@ def Main():
             Dummy['name'] = Prompt('Name:', Cursor)
             Dummy['checked'] = False
             Lists.append(Dummy)
-        elif Key == '\x1b[3~':
+        elif Key == Config['del']:
             del Lists[Cursor[1]]  # Delete
+            _print(ClearScreen)
+            caveman.move(0, Cursor[1]+1)
             if Cursor[1] != 0:
                 Cursor[1] -= 1
         else:
             Cursor = CheckMovement(Cursor, Key, Lists)
         ToPrint += str(Cursor[1]+1)
-        _print("\033[?25l")
+        _print(CursorOff)
         DisplayLists(Cursor, Lists)
-        _print("\033[?25h")
+        _print(CursorOn)
         _print(Fore.LIGHTYELLOW_EX)
-        print(ToPrint)
+        caveman.addstr(ToPrint)
         caveman.move(*Cursor)
 
         Key = readkey()
